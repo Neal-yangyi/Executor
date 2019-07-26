@@ -21,7 +21,7 @@ public ThreadPoolExecutor(int corePoolSize,
              threadFactory, defaultHandler);
     }
 ```
-&emsp;&emsp;corePoolSize：线程池的核心池大小，在创建线程池之后，线程池默认没有任何线程。这个参数最直白的意思就是允许线程池中允许同时运行的最大线程数。关于这个参数的值应该设置多大网上有很多说法，有一种就是如果是IO密集型corePoolSize的大小设置为两倍的CPU处理器个数，如果是CPU密集型就设置为CPU处理器个数+/-1。  
+&emsp;&emsp;corePoolSize：线程池的核心池大小，在创建线程池之后，线程池默认没有任何线程。这个参数最直白的意思就是允许线程池中允许同时运行的最大线程数。关于这个参数的值应该设置多大网上有很多说法，有一种就是如果是IO密集型corePoolSize的大小设置为两倍的CPU处理器个数，如果是CPU密集型就设置为CPU处理器个数+/-1。不同的线程数量会影响处理时间，并不是数量越大速度越快，因为涉及到线程的上下文切换、创建、销毁等等。  
 &emsp;&emsp;maximumPoolSize：线程池中线程的最大数。把大量任务提交给线程池处理后一部分会由空闲线程执行，剩下的进入等待队列等待，如果任务数量超过了队列的长度，会创建新的线程来服务，线程的数量就是由maximumPoolSize来限制的。  
 &emsp;&emsp;unit：时间单位，可以设置为秒。  
 &emsp;&emsp;workQueue：当任务数量超过corePoolSize时，任务会进入等待队列。队列分为有界队列和无界队列。  
@@ -33,3 +33,34 @@ public ThreadPoolExecutor(int corePoolSize,
 ```
 ExecutorService executor = new ThreadPoolExecutor(3, 3, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue());
 ```
+&emsp;&emsp;我们假设有50家使用方需要我们统计  
+```
+List<Object> resultList = new ArrayList<>();
+List<Future<Object>> futureList = new ArrayList<>();
+for (int i = 0; i < 50; i++) {
+    //将任务提交给线程池，如果不需要返回值可以使用Runnable，并用executor.execute(Runnable run)来执行
+    Future<Object> future = executor.submit(new Callable<Object>() {
+        @Override
+        public Object call() throws Exception {
+            //TODO 关于业务的一些操作
+            return null;
+        }
+    });
+    futureList.add(future);
+}
+```
+&emsp;&emsp;这样就将所有的任务提交给了线程池来处理。由于自身业务需求我需要拿到每家使用方的统计结果。
+```
+for (Future<ReportRunVo> future : futureList) {
+    try {
+        //按顺序获取执行的结果。future.get()会一直阻塞直到拿到结果，
+        这个地方如果觉得会影响性能可以用ExecutorCompletionService来解决这个问题，接下来会将
+        resultList.add(future.get());
+    } catch (ExecutionException | InterruptedException e) {
+        e.printStackTrace();
+    }
+}
+//关闭线程池
+executor.shutdown();
+```
+&emsp;&emsp;以上是最简单的使用方法。
