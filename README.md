@@ -33,7 +33,7 @@ public ThreadPoolExecutor(int corePoolSize,
 ```
 ExecutorService executor = new ThreadPoolExecutor(3, 3, 0L, TimeUnit.SECONDS, new LinkedBlockingQueue());
 ```
-&emsp;&emsp;我们假设有50家使用方需要我们统计  
+我们假设有50家使用方需要我们统计  
 ```
 List<Object> resultList = new ArrayList<>();
 List<Future<Object>> futureList = new ArrayList<>();
@@ -49,7 +49,7 @@ for (int i = 0; i < 50; i++) {
     futureList.add(future);
 }
 ```
-&emsp;&emsp;这样就将所有的任务提交给了线程池来处理。由于自身业务需求我需要拿到每家使用方的统计结果。
+这样就将所有的任务提交给了线程池来处理。由于自身业务需求我需要拿到每家使用方的统计结果。
 ```
 for (Future<ReportRunVo> future : futureList) {
     try {
@@ -63,4 +63,4 @@ for (Future<ReportRunVo> future : futureList) {
 //关闭线程池
 executor.shutdown();
 ```
-&emsp;&emsp;以上是最简单的使用方法。
+以上是最简单的使用方法。
